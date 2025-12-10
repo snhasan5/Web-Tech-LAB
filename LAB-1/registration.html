@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIT-AP | Registration</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="wrapper">
+    <nav>
+      <div class="brand">
+        <span class="brand-badge">VA</span>
+        <span>VIT-AP University</span>
+      </div>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="registration.html">Registration</a>
+      </div>
+    </nav>
+
+    <section class="section">
+      <div class="tag">Secure your spot</div>
+      <h1>Registration Form</h1>
+      <p>Please enter accurate details so we can reach you with next steps.</p>
+
+      <div class="panel form-card">
+        <form id="registration-form" novalidate>
+          <div class="form-row">
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" placeholder="Full name" required>
+            <div class="error" data-error="name"></div>
+          </div>
+
+          <div class="form-row">
+            <label for="regno">Registration Number</label>
+            <input id="regno" name="regno" type="text" placeholder="e.g., 23BCE1234" required>
+            <div class="error" data-error="regno"></div>
+          </div>
+
+          <div class="form-row">
+            <label for="phone">Phone Number</label>
+            <input id="phone" name="phone" type="tel" placeholder="10-digit mobile" required>
+            <div class="error" data-error="phone"></div>
+          </div>
+
+          <div class="form-row">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="you@example.com" required>
+            <div class="error" data-error="email"></div>
+          </div>
+
+          <div class="cta-row" style="margin-top: 6px;">
+            <button type="submit" class="btn btn-primary">Submit registration</button>
+            <button type="reset" class="btn btn-ghost">Clear</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <footer>
+      Built for WEBTECH Lab · Crafted with the VIT-AP palette.
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <div class="dot"></div>
+    <div class="toast-text">Registration saved.</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
