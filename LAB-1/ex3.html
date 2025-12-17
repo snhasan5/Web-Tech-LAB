@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Registration Form</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial,
+          sans-serif;
+        margin: 0;
+        padding: 2rem;
+      }
+      .container {
+        max-width: 520px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 1rem;
+      }
+      form {
+        display: grid;
+        gap: 1rem;
+      }
+      fieldset {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+      legend {
+        padding: 0 0.5rem;
+        font-weight: 600;
+      }
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      input,
+      button {
+        font: inherit;
+      }
+      input[type="text"],
+      input[type="email"],
+      input[type="date"],
+      input[type="tel"],
+      input[type="password"],
+      input[type="file"] {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.5rem 0.6rem;
+        border: 1px solid #bbb;
+        border-radius: 6px;
+      }
+      .checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .actions {
+        display: flex;
+        gap: 0.75rem;
+      }
+      button {
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        border: 1px solid #888;
+        cursor: pointer;
+      }
+      .hint {
+        font-size: 0.85rem;
+        color: #666;
+      }
+    </style>
+    <meta
+      name="description"
+      content="HTML5 advanced registration form with native validation"
+    />
+  </head>
+  <body>
+    <main class="container" aria-labelledby="title">
+      <h1 id="title">Create Your Account</h1>
+      <form
+        id="registrationForm"
+        action="#"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <fieldset>
+          <legend>Personal Information</legend>
+
+          <div>
+            <label for="fullName">Full Name</label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              placeholder="e.g., Jane Doe"
+              autocomplete="name"
+              required
+            />
+          </div>
+
+          <div>
+            <label for="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="name@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div>
+            <label for="dob">Date of Birth</label>
+            <input id="dob" name="dob" type="date" required />
+          </div>
+
+          <div>
+            <label for="phone">Phone Number</label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="e.g., +1 234-567-890"
+              inputmode="tel"
+              autocomplete="tel"
+              pattern="^\+?[0-9\s\-]{7,15}$"
+              title="Use digits, spaces, or hyphens (e.g., +1 234-567-890)"
+              required
+            />
+            <p class="hint">
+              Accepted: digits, spaces, hyphens; optional leading +
+            </p>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Security & Profile</legend>
+
+          <div>
+            <label for="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              minlength="8"
+              placeholder="At least 8 characters"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+
+          <div>
+            <label for="avatar">Choose Profile Picture</label>
+            <input
+              id="avatar"
+              name="avatar"
+              type="file"
+              accept="image/*"
+              required
+            />
+          </div>
+
+          <div class="checkbox">
+            <input id="terms" name="terms" type="checkbox" required />
+            <label for="terms">I accept the Terms &amp; Conditions</label>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit">Register</button>
+          <button type="reset">Reset</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>
