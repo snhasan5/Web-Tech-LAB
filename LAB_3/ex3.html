@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Survey Builder with DOM-Generated Forms</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* Survey Builder Panel */
+        .builder-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .panel-title {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Question Templates */
+        .template-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .template-btn {
+            padding: 15px;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .template-btn:hover {
+            background: #667eea;
+            color: white;
+            border-style: solid;
+        }
+
+        .template-btn .icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .template-btn .label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Question Editor */
+        .question-editor {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .question-editor.show {
+            display: block;
+        }
+
+        .editor-row {
+            margin-bottom: 15px;
+        }
+
+        .editor-row label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .editor-row input,
+        .editor-row select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .editor-row input:focus,
+        .editor-row select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .options-container {
+            margin-top: 15px;
+        }
+
+        .option-input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .option-input-row input {
+            flex: 1;
+        }
+
+        .btn-remove-option {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-remove-option:hover {
+            background: #c0392b;
+        }
+
+        .btn-add-option {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .btn-add-option:hover {
+            background: #229954;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-save-question {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-save-question:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #666;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        /* Questions List */
+        .questions-list {
+            min-height: 100px;
+        }
+
+        .question-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .question-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .question-number {
+            background: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .question-type-badge {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .question-text {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .question-meta {
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            gap: 15px;
+        }
+
+        .question-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-edit,
+        .btn-delete {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-edit:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ffebee;
+            color: #e74c3c;
+        }
+
+        .btn-delete:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        /* Survey Preview Panel */
+        .preview-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .btn-generate {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-generate:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Generated Survey Form */
+        .survey-form {
+            display: none;
+        }
+
+        .survey-form.show {
+            display: block;
+        }
+
+        .survey-question {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .survey-question.invalid {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        .survey-question.valid {
+            border-left-color: #27ae60;
+            background: #f0fdf4;
+        }
+
+        .survey-question-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .survey-question-text .required {
+            color: #e74c3c;
+        }
+
+        .survey-question-text .char-limit {
+            font-size: 12px;
+            color: #888;
+            font-weight: normal;
+            margin-left: 10px;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .text-input.invalid {
+            border-color: #e74c3c;
+        }
+
+        .text-input.valid {
+            border-color: #27ae60;
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .char-counter.warning {
+            color: #f39c12;
+        }
+
+        .char-counter.error {
+            color: #e74c3c;
+        }
+
+        .option-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .option-item:hover {
+            background: #e8e8e8;
+        }
+
+        .option-item input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .option-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .selection-info {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .inline-error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+            padding: 8px;
+            background: #ffebee;
+            border-radius: 4px;
+        }
+
+        .inline-error.show {
+            display: block;
+        }
+
+        .inline-success {
+            color: #27ae60;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+            padding: 8px;
+            background: #e8f5e9;
+            border-radius: 4px;
+        }
+
+        .inline-success.show {
+            display: block;
+        }
+
+        /* Submit Section */
+        .submit-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .validation-summary {
+            font-size: 14px;
+        }
+
+        .validation-summary.valid {
+            color: #27ae60;
+        }
+
+        .validation-summary.invalid {
+            color: #e74c3c;
+        }
+
+        .btn-submit {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Success Modal */
+        .success-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .success-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .modal-message {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .btn-close-modal {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-close-modal:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Predefined Surveys */
+        .predefined-section {
+            margin-bottom: 25px;
+        }
+
+        .predefined-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .predefined-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-load-survey {
+            background: #f0f0f0;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .btn-load-survey:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .template-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Dynamic Survey Builder</h1>
+            <p>Create custom surveys with DOM-generated forms and real-time validation</p>
+        </div>
+
+        <!-- Survey Builder Panel -->
+        <div class="builder-panel">
+            <h2 class="panel-title">🛠️ Survey Builder</h2>
+
+            <!-- Predefined Surveys -->
+            <div class="predefined-section">
+                <div class="predefined-title">Quick Start - Load a predefined survey:</div>
+                <div class="predefined-btns">
+                    <button class="btn-load-survey" onclick="loadPredefinedSurvey('feedback')">
+                        📋 Customer Feedback
+                    </button>
+                    <button class="btn-load-survey" onclick="loadPredefinedSurvey('employee')">
+                        👔 Employee Survey
+                    </button>
+                    <button class="btn-load-survey" onclick="loadPredefinedSurvey('event')">
+                        🎉 Event Registration
+                    </button>
+                </div>
+            </div>
+
+            <!-- Question Templates -->
+            <div class="template-section">
+                <div class="template-btn" onclick="openEditor('text')">
+                    <div class="icon">📝</div>
+                    <div class="label">Text Question</div>
+                </div>
+                <div class="template-btn" onclick="openEditor('radio')">
+                    <div class="icon">🔘</div>
+                    <div class="label">Single Choice</div>
+                </div>
+                <div class="template-btn" onclick="openEditor('checkbox')">
+                    <div class="icon">☑️</div>
+                    <div class="label">Multiple Choice</div>
+                </div>
+            </div>
+
+            <!-- Question Editor -->
+            <div class="question-editor" id="questionEditor">
+                <div class="editor-row">
+                    <label>Question Text <span style="color: #e74c3c;">*</span></label>
+                    <input type="text" id="questionText" placeholder="Enter your question here...">
+                </div>
+
+                <div class="editor-row">
+                    <label>
+                        <input type="checkbox" id="isRequired" checked> Required Question
+                    </label>
+                </div>
+
+                <!-- Text-specific options -->
+                <div id="textOptions" class="editor-row">
+                    <label>Character Limit (0 = no limit)</label>
+                    <input type="number" id="charLimit" value="200" min="0">
+                </div>
+
+                <!-- Options for radio/checkbox -->
+                <div id="choiceOptions" class="options-container" style="display: none;">
+                    <label>Answer Options:</label>
+                    <div id="optionsList"></div>
+                    <button type="button" class="btn-add-option" onclick="addOption()">
+                        + Add Option
+                    </button>
+                </div>
+
+                <!-- Checkbox-specific options -->
+                <div id="checkboxLimits" class="editor-row" style="display: none;">
+                    <label>Selection Limits:</label>
+                    <div style="display: flex; gap: 15px;">
+                        <div>
+                            <label style="font-weight: normal;">Min:</label>
+                            <input type="number" id="minSelect" value="1" min="0" style="width: 80px;">
+                        </div>
+                        <div>
+                            <label style="font-weight: normal;">Max:</label>
+                            <input type="number" id="maxSelect" value="3" min="1" style="width: 80px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-actions">
+                    <button type="button" class="btn-save-question" onclick="saveQuestion()">
+                        Save Question
+                    </button>
+                    <button type="button" class="btn-cancel" onclick="closeEditor()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Questions List -->
+            <div class="questions-list" id="questionsList">
+                <div class="empty-state" id="emptyState">
+                    <div class="icon">📋</div>
+                    <p>No questions added yet. Click a template above to add questions.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Survey Preview Panel -->
+        <div class="preview-panel">
+            <div class="preview-header">
+                <h2 class="panel-title">📊 Survey Preview & Test</h2>
+                <button class="btn-generate" id="generateBtn" onclick="generateSurvey()" disabled>
+                    Generate Survey Form
+                </button>
+            </div>
+
+            <div id="surveyFormContainer">
+                <div class="empty-state">
+                    <div class="icon">🔍</div>
+                    <p>Add questions above and click "Generate Survey Form" to preview your survey.</p>
+                </div>
+            </div>
+
+            <form class="survey-form" id="surveyForm" novalidate>
+                <div id="generatedQuestions"></div>
+                
+                <div class="submit-section">
+                    <div class="validation-summary" id="validationSummary"></div>
+                    <button type="submit" class="btn-submit" id="submitBtn" disabled>
+                        Submit Survey
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="modal-content">
+            <div class="modal-icon">🎉</div>
+            <h2 class="modal-title">Survey Submitted!</h2>
+            <p class="modal-message">Thank you for completing the survey. Your responses have been recorded.</p>
+            <div id="responsesSummary"></div>
+            <button class="btn-close-modal" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // ============== QUESTIONS DATA STRUCTURE ==============
+        let questions = [];
+        let editingIndex = -1;
+        let currentQuestionType = '';
+
+        // Predefined survey templates
+        const predefinedSurveys = {
+            feedback: [
+                {
+                    type: 'text',
+                    text: 'What is your name?',
+                    required: true,
+                    charLimit: 100
+                },
+                {
+                    type: 'radio',
+                    text: 'How satisfied are you with our service?',
+                    required: true,
+                    options: ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied']
+                },
+                {
+                    type: 'checkbox',
+                    text: 'Which features do you use most? (Select 1-3)',
+                    required: true,
+                    options: ['Dashboard', 'Reports', 'Analytics', 'Notifications', 'Settings'],
+                    minSelect: 1,
+                    maxSelect: 3
+                },
+                {
+                    type: 'text',
+                    text: 'Any additional comments or suggestions?',
+                    required: false,
+                    charLimit: 500
+                }
+            ],
+            employee: [
+                {
+                    type: 'text',
+                    text: 'Employee ID',
+                    required: true,
+                    charLimit: 20
+                },
+                {
+                    type: 'radio',
+                    text: 'Department',
+                    required: true,
+                    options: ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance', 'Operations']
+                },
+                {
+                    type: 'radio',
+                    text: 'How would you rate your work-life balance?',
+                    required: true,
+                    options: ['Excellent', 'Good', 'Average', 'Poor']
+                },
+                {
+                    type: 'checkbox',
+                    text: 'What benefits are most important to you? (Select up to 4)',
+                    required: true,
+                    options: ['Health Insurance', 'Remote Work', 'Flexible Hours', 'Professional Development', 'Gym Membership', 'Childcare Support'],
+                    minSelect: 1,
+                    maxSelect: 4
+                }
+            ],
+            event: [
+                {
+                    type: 'text',
+                    text: 'Full Name',
+                    required: true,
+                    charLimit: 100
+                },
+                {
+                    type: 'text',
+                    text: 'Email Address',
+                    required: true,
+                    charLimit: 150
+                },
+                {
+                    type: 'radio',
+                    text: 'Which session are you most interested in?',
+                    required: true,
+                    options: ['Morning Workshop', 'Afternoon Seminar', 'Evening Networking', 'Full Day Package']
+                },
+                {
+                    type: 'checkbox',
+                    text: 'Dietary requirements (if any)',
+                    required: false,
+                    options: ['Vegetarian', 'Vegan', 'Gluten-Free', 'Halal', 'Kosher', 'None'],
+                    minSelect: 0,
+                    maxSelect: 3
+                }
+            ]
+        };
+
+        // ============== EDITOR FUNCTIONS ==============
+
+        /**
+         * Open question editor
+         */
+        function openEditor(type) {
+            currentQuestionType = type;
+            editingIndex = -1;
+            
+            // Reset editor
+            document.getElementById('questionText').value = '';
+            document.getElementById('isRequired').checked = true;
+            document.getElementById('charLimit').value = '200';
+            document.getElementById('optionsList').innerHTML = '';
+            document.getElementById('minSelect').value = '1';
+            document.getElementById('maxSelect').value = '3';
+
+            // Show/hide type-specific options
+            document.getElementById('textOptions').style.display = type === 'text' ? 'block' : 'none';
+            document.getElementById('choiceOptions').style.display = type !== 'text' ? 'block' : 'none';
+            document.getElementById('checkboxLimits').style.display = type === 'checkbox' ? 'flex' : 'none';
+
+            // Add default options for choice questions
+            if (type !== 'text') {
+                addOption();
+                addOption();
+            }
+
+            document.getElementById('questionEditor').classList.add('show');
+        }
+
+        /**
+         * Close question editor
+         */
+        function closeEditor() {
+            document.getElementById('questionEditor').classList.remove('show');
+            currentQuestionType = '';
+            editingIndex = -1;
+        }
+
+        /**
+         * Add option input for radio/checkbox questions
+         */
+        function addOption(value = '') {
+            const optionsList = document.getElementById('optionsList');
+            const optionCount = optionsList.children.length + 1;
+            
+            const optionRow = document.createElement('div');
+            optionRow.className = 'option-input-row';
+            optionRow.innerHTML = `
+                <input type="text" placeholder="Option ${optionCount}" value="${value}">
+                <button type="button" class="btn-remove-option" onclick="removeOption(this)">×</button>
+            `;
+            optionsList.appendChild(optionRow);
+        }
+
+        /**
+         * Remove option input
+         */
+        function removeOption(btn) {
+            const optionsList = document.getElementById('optionsList');
+            if (optionsList.children.length > 2) {
+                btn.parentElement.remove();
+            } else {
+                alert('At least 2 options are required.');
+            }
+        }
+
+        /**
+         * Save question to array
+         */
+        function saveQuestion() {
+            const questionText = document.getElementById('questionText').value.trim();
+            
+            if (!questionText) {
+                alert('Please enter a question text.');
+                return;
+            }
+
+            const question = {
+                type: currentQuestionType,
+                text: questionText,
+                required: document.getElementById('isRequired').checked
+            };
+
+            if (currentQuestionType === 'text') {
+                question.charLimit = parseInt(document.getElementById('charLimit').value) || 0;
+            } else {
+                // Get options
+                const optionInputs = document.querySelectorAll('#optionsList input');
+                const options = [];
+                optionInputs.forEach(input => {
+                    if (input.value.trim()) {
+                        options.push(input.value.trim());
+                    }
+                });
+
+                if (options.length < 2) {
+                    alert('Please provide at least 2 options.');
+                    return;
+                }
+
+                question.options = options;
+
+                if (currentQuestionType === 'checkbox') {
+                    question.minSelect = parseInt(document.getElementById('minSelect').value) || 0;
+                    question.maxSelect = parseInt(document.getElementById('maxSelect').value) || options.length;
+                }
+            }
+
+            if (editingIndex >= 0) {
+                questions[editingIndex] = question;
+            } else {
+                questions.push(question);
+            }
+
+            closeEditor();
+            renderQuestionsList();
+            updateGenerateButton();
+        }
+
+        /**
+         * Edit existing question
+         */
+        function editQuestion(index) {
+            const question = questions[index];
+            currentQuestionType = question.type;
+            editingIndex = index;
+
+            document.getElementById('questionText').value = question.text;
+            document.getElementById('isRequired').checked = question.required;
+
+            // Show/hide type-specific options
+            document.getElementById('textOptions').style.display = question.type === 'text' ? 'block' : 'none';
+            document.getElementById('choiceOptions').style.display = question.type !== 'text' ? 'block' : 'none';
+            document.getElementById('checkboxLimits').style.display = question.type === 'checkbox' ? 'flex' : 'none';
+
+            if (question.type === 'text') {
+                document.getElementById('charLimit').value = question.charLimit || 0;
+            } else {
+                document.getElementById('optionsList').innerHTML = '';
+                question.options.forEach(opt => addOption(opt));
+
+                if (question.type === 'checkbox') {
+                    document.getElementById('minSelect').value = question.minSelect || 0;
+                    document.getElementById('maxSelect').value = question.maxSelect || question.options.length;
+                }
+            }
+
+            document.getElementById('questionEditor').classList.add('show');
+        }
+
+        /**
+         * Delete question
+         */
+        function deleteQuestion(index) {
+            if (confirm('Are you sure you want to delete this question?')) {
+                questions.splice(index, 1);
+                renderQuestionsList();
+                updateGenerateButton();
+                
+                // Hide survey form if questions changed
+                document.getElementById('surveyForm').classList.remove('show');
+                document.getElementById('surveyFormContainer').style.display = 'block';
+            }
+        }
+
+        /**
+         * Render questions list
+         */
+        function renderQuestionsList() {
+            const container = document.getElementById('questionsList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (questions.length === 0) {
+                emptyState.style.display = 'block';
+                container.innerHTML = '';
+                container.appendChild(emptyState);
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            
+            container.innerHTML = questions.map((q, index) => {
+                const typeLabels = { text: 'Text', radio: 'Single Choice', checkbox: 'Multiple Choice' };
+                let metaInfo = `Required: ${q.required ? 'Yes' : 'No'}`;
+                
+                if (q.type === 'text' && q.charLimit > 0) {
+                    metaInfo += ` | Max ${q.charLimit} chars`;
+                } else if (q.type !== 'text') {
+                    metaInfo += ` | ${q.options.length} options`;
+                    if (q.type === 'checkbox') {
+                        metaInfo += ` | Select ${q.minSelect}-${q.maxSelect}`;
+                    }
+                }
+
+                return `
+                    <div class="question-card">
+                        <div class="question-card-header">
+                            <div class="question-number">${index + 1}</div>
+                            <span class="question-type-badge">${typeLabels[q.type]}</span>
+                        </div>
+                        <div class="question-text">${q.text}</div>
+                        <div class="question-meta">${metaInfo}</div>
+                        <div class="question-card-actions">
+                            <button class="btn-edit" onclick="editQuestion(${index})">Edit</button>
+                            <button class="btn-delete" onclick="deleteQuestion(${index})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Update generate button state
+         */
+        function updateGenerateButton() {
+            document.getElementById('generateBtn').disabled = questions.length === 0;
+        }
+
+        /**
+         * Load predefined survey
+         */
+        function loadPredefinedSurvey(type) {
+            if (questions.length > 0) {
+                if (!confirm('This will replace your current questions. Continue?')) {
+                    return;
+                }
+            }
+            
+            questions = JSON.parse(JSON.stringify(predefinedSurveys[type]));
+            renderQuestionsList();
+            updateGenerateButton();
+        }
+
+        // ============== SURVEY GENERATION ==============
+
+        /**
+         * Generate survey form dynamically
+         */
+        function generateSurvey() {
+            const container = document.getElementById('generatedQuestions');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'survey-question';
+                questionDiv.id = `question-${index}`;
+                questionDiv.dataset.type = q.type;
+                questionDiv.dataset.required = q.required;
+
+                let html = `
+                    <div class="survey-question-text">
+                        ${index + 1}. ${q.text}
+                        ${q.required ? '<span class="required">*</span>' : ''}
+                        ${q.type === 'text' && q.charLimit > 0 ? `<span class="char-limit">(max ${q.charLimit} characters)</span>` : ''}
+                    </div>
+                `;
+
+                if (q.type === 'text') {
+                    html += `
+                        <textarea 
+                            class="text-input" 
+                            id="input-${index}" 
+                            data-charlimit="${q.charLimit}"
+                            placeholder="Enter your answer..."
+                            oninput="validateTextInput(${index})"
+                            onblur="validateTextInput(${index})"
+                        ></textarea>
+                        ${q.charLimit > 0 ? `<div class="char-counter" id="counter-${index}">0 / ${q.charLimit}</div>` : ''}
+                    `;
+                } else if (q.type === 'radio') {
+                    html += '<div class="option-list">';
+                    q.options.forEach((opt, optIndex) => {
+                        html += `
+                            <div class="option-item">
+                                <input 
+                                    type="radio" 
+                                    name="question-${index}" 
+                                    id="opt-${index}-${optIndex}" 
+                                    value="${opt}"
+                                    onchange="validateRadioInput(${index})"
+                                >
+                                <label for="opt-${index}-${optIndex}">${opt}</label>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                } else if (q.type === 'checkbox') {
+                    html += `<div class="option-list" data-min="${q.minSelect}" data-max="${q.maxSelect}">`;
+                    q.options.forEach((opt, optIndex) => {
+                        html += `
+                            <div class="option-item">
+                                <input 
+                                    type="checkbox" 
+                                    name="question-${index}" 
+                                    id="opt-${index}-${optIndex}" 
+                                    value="${opt}"
+                                    onchange="validateCheckboxInput(${index})"
+                                >
+                                <label for="opt-${index}-${optIndex}">${opt}</label>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    html += `<div class="selection-info">Select between ${q.minSelect} and ${q.maxSelect} options</div>`;
+                }
+
+                html += `
+                    <div class="inline-error" id="error-${index}"></div>
+                    <div class="inline-success" id="success-${index}">✓ Valid response</div>
+                `;
+
+                questionDiv.innerHTML = html;
+                container.appendChild(questionDiv);
+            });
+
+            // Show form, hide empty state
+            document.getElementById('surveyFormContainer').style.display = 'none';
+            document.getElementById('surveyForm').classList.add('show');
+            
+            updateValidationSummary();
+        }
+
+        // ============== VALIDATION FUNCTIONS ==============
+
+        /**
+         * Validate text input
+         */
+        function validateTextInput(index) {
+            const input = document.getElementById(`input-${index}`);
+            const questionDiv = document.getElementById(`question-${index}`);
+            const errorDiv = document.getElementById(`error-${index}`);
+            const successDiv = document.getElementById(`success-${index}`);
+            const counterDiv = document.getElementById(`counter-${index}`);
+            
+            const value = input.value.trim();
+            const charLimit = parseInt(input.dataset.charlimit) || 0;
+            const isRequired = questionDiv.dataset.required === 'true';
+
+            // Update character counter
+            if (counterDiv && charLimit > 0) {
+                counterDiv.textContent = `${value.length} / ${charLimit}`;
+                counterDiv.className = 'char-counter';
+                
+                if (value.length > charLimit * 0.9) {
+                    counterDiv.classList.add('warning');
+                }
+                if (value.length > charLimit) {
+                    counterDiv.classList.add('error');
+                }
+            }
+
+            // Validation
+            let isValid = true;
+            let errorMessage = '';
+
+            if (isRequired && !value) {
+                isValid = false;
+                errorMessage = 'This field is required.';
+            } else if (charLimit > 0 && value.length > charLimit) {
+                isValid = false;
+                errorMessage = `Response exceeds maximum ${charLimit} characters.`;
+            }
+
+            // Update UI
+            input.classList.remove('valid', 'invalid');
+            questionDiv.classList.remove('valid', 'invalid');
+            errorDiv.classList.remove('show');
+            successDiv.classList.remove('show');
+
+            if (!value && !isRequired) {
+                // Empty but optional - neutral state
+            } else if (isValid) {
+                input.classList.add('valid');
+                questionDiv.classList.add('valid');
+                successDiv.classList.add('show');
+            } else {
+                input.classList.add('invalid');
+                questionDiv.classList.add('invalid');
+                errorDiv.textContent = errorMessage;
+                errorDiv.classList.add('show');
+            }
+
+            updateValidationSummary();
+            return isValid;
+        }
+
+        /**
+         * Validate radio input
+         */
+        function validateRadioInput(index) {
+            const questionDiv = document.getElementById(`question-${index}`);
+            const errorDiv = document.getElementById(`error-${index}`);
+            const successDiv = document.getElementById(`success-${index}`);
+            
+            const selected = document.querySelector(`input[name="question-${index}"]:checked`);
+            const isRequired = questionDiv.dataset.required === 'true';
+
+            let isValid = true;
+            let errorMessage = '';
+
+            if (isRequired && !selected) {
+                isValid = false;
+                errorMessage = 'Please select an option.';
+            }
+
+            // Update UI
+            questionDiv.classList.remove('valid', 'invalid');
+            errorDiv.classList.remove('show');
+            successDiv.classList.remove('show');
+
+            if (selected) {
+                questionDiv.classList.add('valid');
+                successDiv.classList.add('show');
+            } else if (!isRequired) {
+                // Optional and not selected - neutral
+            } else {
+                questionDiv.classList.add('invalid');
+                errorDiv.textContent = errorMessage;
+                errorDiv.classList.add('show');
+            }
+
+            updateValidationSummary();
+            return isValid;
+        }
+
+        /**
+         * Validate checkbox input
+         */
+        function validateCheckboxInput(index) {
+            const questionDiv = document.getElementById(`question-${index}`);
+            const errorDiv = document.getElementById(`error-${index}`);
+            const successDiv = document.getElementById(`success-${index}`);
+            const optionList = questionDiv.querySelector('.option-list');
+            
+            const checked = document.querySelectorAll(`input[name="question-${index}"]:checked`);
+            const isRequired = questionDiv.dataset.required === 'true';
+            const minSelect = parseInt(optionList.dataset.min) || 0;
+            const maxSelect = parseInt(optionList.dataset.max) || checked.length;
+
+            let isValid = true;
+            let errorMessage = '';
+
+            if (isRequired && checked.length === 0) {
+                isValid = false;
+                errorMessage = 'Please select at least one option.';
+            } else if (checked.length < minSelect) {
+                isValid = false;
+                errorMessage = `Please select at least ${minSelect} option(s).`;
+            } else if (checked.length > maxSelect) {
+                isValid = false;
+                errorMessage = `Please select no more than ${maxSelect} option(s).`;
+            }
+
+            // Update UI
+            questionDiv.classList.remove('valid', 'invalid');
+            errorDiv.classList.remove('show');
+            successDiv.classList.remove('show');
+
+            if (isValid && checked.length > 0) {
+                questionDiv.classList.add('valid');
+                successDiv.classList.add('show');
+            } else if (checked.length === 0 && !isRequired) {
+                // Optional and not selected - neutral
+            } else if (!isValid) {
+                questionDiv.classList.add('invalid');
+                errorDiv.textContent = errorMessage;
+                errorDiv.classList.add('show');
+            }
+
+            updateValidationSummary();
+            return isValid;
+        }
+
+        /**
+         * Validate all questions
+         */
+        function validateAllQuestions() {
+            let allValid = true;
+            
+            questions.forEach((q, index) => {
+                let isValid;
+                
+                if (q.type === 'text') {
+                    isValid = validateTextInput(index);
+                } else if (q.type === 'radio') {
+                    isValid = validateRadioInput(index);
+                } else if (q.type === 'checkbox') {
+                    isValid = validateCheckboxInput(index);
+                }
+                
+                if (!isValid) allValid = false;
+            });
+            
+            return allValid;
+        }
+
+        /**
+         * Update validation summary
+         */
+        function updateValidationSummary() {
+            const summaryDiv = document.getElementById('validationSummary');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            let validCount = 0;
+            let requiredCount = 0;
+            let requiredValid = 0;
+
+            questions.forEach((q, index) => {
+                const questionDiv = document.getElementById(`question-${index}`);
+                if (questionDiv && questionDiv.classList.contains('valid')) {
+                    validCount++;
+                }
+                if (q.required) {
+                    requiredCount++;
+                    if (questionDiv && questionDiv.classList.contains('valid')) {
+                        requiredValid++;
+                    }
+                }
+            });
+
+            const allRequiredValid = requiredValid === requiredCount;
+            
+            summaryDiv.className = 'validation-summary ' + (allRequiredValid ? 'valid' : 'invalid');
+            summaryDiv.textContent = allRequiredValid 
+                ? `✓ All required questions answered (${validCount}/${questions.length} total)`
+                : `${requiredValid}/${requiredCount} required questions answered`;
+            
+            submitBtn.disabled = !allRequiredValid;
+        }
+
+        /**
+         * Collect survey responses
+         */
+        function collectResponses() {
+            const responses = [];
+            
+            questions.forEach((q, index) => {
+                let value;
+                
+                if (q.type === 'text') {
+                    value = document.getElementById(`input-${index}`).value.trim();
+                } else if (q.type === 'radio') {
+                    const selected = document.querySelector(`input[name="question-${index}"]:checked`);
+                    value = selected ? selected.value : null;
+                } else if (q.type === 'checkbox') {
+                    const checked = document.querySelectorAll(`input[name="question-${index}"]:checked`);
+                    value = Array.from(checked).map(cb => cb.value);
+                }
+                
+                responses.push({
+                    question: q.text,
+                    type: q.type,
+                    answer: value
+                });
+            });
+            
+            return responses;
+        }
+
+        // ============== FORM SUBMISSION ==============
+
+        document.getElementById('surveyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Final validation
+            if (!validateAllQuestions()) {
+                alert('Please complete all required questions before submitting.');
+                return;
+            }
+
+            // Collect responses
+            const responses = collectResponses();
+            console.log('Survey Responses:', responses);
+
+            // Show success modal with responses
+            const summaryDiv = document.getElementById('responsesSummary');
+            summaryDiv.innerHTML = '<h4 style="margin: 20px 0 15px; color: #333;">Your Responses:</h4>';
+            summaryDiv.innerHTML += responses.map((r, i) => `
+                <div style="text-align: left; padding: 10px; background: #f5f5f5; margin-bottom: 8px; border-radius: 6px;">
+                    <strong>Q${i + 1}:</strong> ${r.question}<br>
+                    <span style="color: #667eea;">Answer:</span> ${
+                        Array.isArray(r.answer) 
+                            ? r.answer.join(', ') || 'Not answered'
+                            : r.answer || 'Not answered'
+                    }
+                </div>
+            `).join('');
+
+            document.getElementById('successModal').classList.add('show');
+        });
+
+        /**
+         * Close success modal
+         */
+        function closeModal() {
+            document.getElementById('successModal').classList.remove('show');
+        }
+
+        // ============== INITIALIZATION ==============
+        renderQuestionsList();
+        updateGenerateButton();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Stage Form Workflow Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 30px;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e0e0e0;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .step-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #999;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .step-indicator.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .step-indicator.completed {
+            background: #27ae60;
+            color: white;
+        }
+
+        .step-indicator.completed::after {
+            content: '✓';
+            font-size: 18px;
+        }
+
+        .step-indicator.completed span {
+            display: none;
+        }
+
+        .step-labels {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            width: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .step-label.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .step-label.completed {
+            color: #27ae60;
+        }
+
+        /* Progress Bar Fill */
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        /* Form Stages */
+        .form-stage {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .form-stage.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .stage-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 5px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .stage-description {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        label .required {
+            color: #e74c3c;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="password"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input.valid,
+        select.valid,
+        textarea.valid {
+            border-color: #27ae60;
+            background-color: #f0fdf4;
+        }
+
+        input.invalid,
+        select.invalid,
+        textarea.invalid {
+            border-color: #e74c3c;
+            background-color: #fff5f5;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .field-hint {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Checkbox & Radio */
+        .checkbox-group,
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item,
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input,
+        .radio-item input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-prev {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .btn-prev:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-next {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-next:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-submit {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-hidden {
+            visibility: hidden;
+        }
+
+        /* Summary Stage */
+        .summary-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .summary-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: #666;
+        }
+
+        .summary-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .edit-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-left: 10px;
+        }
+
+        .edit-btn:hover {
+            color: #764ba2;
+        }
+
+        /* Success Message */
+        .success-container {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .success-container.show {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .success-title {
+            font-size: 28px;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .btn-restart {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-restart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Stage Validation Status */
+        .validation-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .validation-status.valid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .validation-status.invalid {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Registration Workflow</h1>
+            <p>Complete all stages to finish your registration</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="step-indicator active" id="step1"><span>1</span></div>
+                <div class="step-indicator" id="step2"><span>2</span></div>
+                <div class="step-indicator" id="step3"><span>3</span></div>
+                <div class="step-indicator" id="step4"><span>4</span></div>
+            </div>
+            <div class="step-labels">
+                <span class="step-label active">Personal</span>
+                <span class="step-label">Contact</span>
+                <span class="step-label">Account</span>
+                <span class="step-label">Review</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Stage 1 of 4 - Personal Information</div>
+        </div>
+
+        <!-- Form Container -->
+        <form id="multiStageForm" novalidate>
+            
+            <!-- Stage 1: Personal Information -->
+            <div class="form-stage active" id="stage1">
+                <h2 class="stage-title">Personal Information</h2>
+                <p class="stage-description">Please provide your basic personal details</p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name <span class="required">*</span></label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Enter first name">
+                        <div class="error-message" id="firstNameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name <span class="required">*</span></label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Enter last name">
+                        <div class="error-message" id="lastNameError"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="dob">Date of Birth <span class="required">*</span></label>
+                    <input type="date" id="dob" name="dob">
+                    <div class="error-message" id="dobError"></div>
+                    <div class="field-hint">You must be at least 18 years old</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Gender <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="gender" value="male"> Male
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="gender" value="female"> Female
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="gender" value="other"> Other
+                        </label>
+                    </div>
+                    <div class="error-message" id="genderError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="nationality">Nationality <span class="required">*</span></label>
+                    <select id="nationality" name="nationality">
+                        <option value="">Select your nationality</option>
+                        <option value="us">United States</option>
+                        <option value="uk">United Kingdom</option>
+                        <option value="ca">Canada</option>
+                        <option value="au">Australia</option>
+                        <option value="de">Germany</option>
+                        <option value="fr">France</option>
+                        <option value="in">India</option>
+                        <option value="jp">Japan</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <div class="error-message" id="nationalityError"></div>
+                </div>
+            </div>
+
+            <!-- Stage 2: Contact Information -->
+            <div class="form-stage" id="stage2">
+                <h2 class="stage-title">Contact Information</h2>
+                <p class="stage-description">How can we reach you?</p>
+
+                <div class="form-group">
+                    <label for="email">Email Address <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="your.email@example.com">
+                    <div class="error-message" id="emailError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+                    <div class="error-message" id="phoneError"></div>
+                    <div class="field-hint">Format: +1234567890 or (555) 123-4567</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Street Address <span class="required">*</span></label>
+                    <input type="text" id="address" name="address" placeholder="123 Main Street">
+                    <div class="error-message" id="addressError"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="city">City <span class="required">*</span></label>
+                        <input type="text" id="city" name="city" placeholder="New York">
+                        <div class="error-message" id="cityError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="zipCode">ZIP/Postal Code <span class="required">*</span></label>
+                        <input type="text" id="zipCode" name="zipCode" placeholder="10001">
+                        <div class="error-message" id="zipCodeError"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 3: Account Setup -->
+            <div class="form-stage" id="stage3">
+                <h2 class="stage-title">Account Setup</h2>
+                <p class="stage-description">Create your secure account credentials</p>
+
+                <div class="form-group">
+                    <label for="username">Username <span class="required">*</span></label>
+                    <input type="text" id="username" name="username" placeholder="Choose a username">
+                    <div class="error-message" id="usernameError"></div>
+                    <div class="field-hint">3-20 characters, letters, numbers, and underscores only</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password <span class="required">*</span></label>
+                    <input type="password" id="password" name="password" placeholder="Create a strong password">
+                    <div class="error-message" id="passwordError"></div>
+                    <div class="field-hint">Minimum 8 characters with uppercase, lowercase, number, and special character</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password <span class="required">*</span></label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password">
+                    <div class="error-message" id="confirmPasswordError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="securityQuestion">Security Question <span class="required">*</span></label>
+                    <select id="securityQuestion" name="securityQuestion">
+                        <option value="">Select a security question</option>
+                        <option value="pet">What was the name of your first pet?</option>
+                        <option value="school">What was the name of your elementary school?</option>
+                        <option value="city">In what city were you born?</option>
+                        <option value="food">What is your favorite food?</option>
+                    </select>
+                    <div class="error-message" id="securityQuestionError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="securityAnswer">Security Answer <span class="required">*</span></label>
+                    <input type="text" id="securityAnswer" name="securityAnswer" placeholder="Your answer">
+                    <div class="error-message" id="securityAnswerError"></div>
+                </div>
+            </div>
+
+            <!-- Stage 4: Review & Submit -->
+            <div class="form-stage" id="stage4">
+                <h2 class="stage-title">Review & Submit</h2>
+                <p class="stage-description">Please review your information before submitting</p>
+
+                <!-- Personal Info Summary -->
+                <div class="summary-section">
+                    <div class="summary-title">
+                        Personal Information
+                        <button type="button" class="edit-btn" onclick="goToStage(1)">Edit</button>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Full Name:</span>
+                        <span class="summary-value" id="summaryName"></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Date of Birth:</span>
+                        <span class="summary-value" id="summaryDob"></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Gender:</span>
+                        <span class="summary-value" id="summaryGender"></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Nationality:</span>
+                        <span class="summary-value" id="summaryNationality"></span>
+                    </div>
+                </div>
+
+                <!-- Contact Info Summary -->
+                <div class="summary-section">
+                    <div class="summary-title">
+                        Contact Information
+                        <button type="button" class="edit-btn" onclick="goToStage(2)">Edit</button>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Email:</span>
+                        <span class="summary-value" id="summaryEmail"></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Phone:</span>
+                        <span class="summary-value" id="summaryPhone"></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Address:</span>
+                        <span class="summary-value" id="summaryAddress"></span>
+                    </div>
+                </div>
+
+                <!-- Account Info Summary -->
+                <div class="summary-section">
+                    <div class="summary-title">
+                        Account Information
+                        <button type="button" class="edit-btn" onclick="goToStage(3)">Edit</button>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Username:</span>
+                        <span class="summary-value" id="summaryUsername"></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Security Question:</span>
+                        <span class="summary-value" id="summarySecurityQuestion"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="termsAgree" name="termsAgree">
+                        I agree to the Terms of Service and Privacy Policy <span class="required">*</span>
+                    </label>
+                    <div class="error-message" id="termsAgreeError"></div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="nav-buttons">
+                <button type="button" class="btn btn-prev btn-hidden" id="prevBtn" onclick="previousStage()">
+                    ← Previous
+                </button>
+                <button type="button" class="btn btn-next" id="nextBtn" onclick="nextStage()">
+                    Next →
+                </button>
+                <button type="submit" class="btn btn-submit" id="submitBtn" style="display: none;">
+                    ✓ Submit Registration
+                </button>
+            </div>
+        </form>
+
+        <!-- Success Message -->
+        <div class="success-container" id="successContainer">
+            <div class="success-icon">🎉</div>
+            <h2 class="success-title">Registration Complete!</h2>
+            <p class="success-message">Thank you for completing your registration. Your account has been created successfully.</p>
+            <button class="btn-restart" onclick="restartForm()">Start New Registration</button>
+        </div>
+    </div>
+
+    <script>
+        // ============== FORM DATA STORAGE ==============
+        let formData = {
+            // Stage 1: Personal Information
+            firstName: '',
+            lastName: '',
+            dob: '',
+            gender: '',
+            nationality: '',
+            
+            // Stage 2: Contact Information
+            email: '',
+            phone: '',
+            address: '',
+            city: '',
+            zipCode: '',
+            
+            // Stage 3: Account Setup
+            username: '',
+            password: '',
+            confirmPassword: '',
+            securityQuestion: '',
+            securityAnswer: '',
+            
+            // Stage 4: Terms
+            termsAgree: false
+        };
+
+        // Current stage tracking
+        let currentStage = 1;
+        const totalStages = 4;
+
+        // Stage validation status
+        let stageValidation = {
+            1: false,
+            2: false,
+            3: false,
+            4: false
+        };
+
+        // ============== DOM ELEMENTS ==============
+        const form = document.getElementById('multiStageForm');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const successContainer = document.getElementById('successContainer');
+
+        // Stage titles for progress text
+        const stageTitles = {
+            1: 'Personal Information',
+            2: 'Contact Information',
+            3: 'Account Setup',
+            4: 'Review & Submit'
+        };
+
+        // ============== VALIDATION FUNCTIONS ==============
+
+        /**
+         * Validate Stage 1: Personal Information
+         */
+        function validateStage1() {
+            let isValid = true;
+            
+            // First Name
+            const firstName = document.getElementById('firstName').value.trim();
+            if (!firstName || firstName.length < 2) {
+                showError('firstName', 'First name must be at least 2 characters');
+                isValid = false;
+            } else if (!/^[a-zA-Z\s]+$/.test(firstName)) {
+                showError('firstName', 'First name can only contain letters');
+                isValid = false;
+            } else {
+                clearError('firstName');
+                formData.firstName = firstName;
+            }
+
+            // Last Name
+            const lastName = document.getElementById('lastName').value.trim();
+            if (!lastName || lastName.length < 2) {
+                showError('lastName', 'Last name must be at least 2 characters');
+                isValid = false;
+            } else if (!/^[a-zA-Z\s]+$/.test(lastName)) {
+                showError('lastName', 'Last name can only contain letters');
+                isValid = false;
+            } else {
+                clearError('lastName');
+                formData.lastName = lastName;
+            }
+
+            // Date of Birth
+            const dob = document.getElementById('dob').value;
+            if (!dob) {
+                showError('dob', 'Date of birth is required');
+                isValid = false;
+            } else {
+                const birthDate = new Date(dob);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                if (age < 18) {
+                    showError('dob', 'You must be at least 18 years old');
+                    isValid = false;
+                } else if (age > 120) {
+                    showError('dob', 'Please enter a valid date of birth');
+                    isValid = false;
+                } else {
+                    clearError('dob');
+                    formData.dob = dob;
+                }
+            }
+
+            // Gender
+            const gender = document.querySelector('input[name="gender"]:checked');
+            if (!gender) {
+                showError('gender', 'Please select your gender');
+                isValid = false;
+            } else {
+                clearError('gender');
+                formData.gender = gender.value;
+            }
+
+            // Nationality
+            const nationality = document.getElementById('nationality').value;
+            if (!nationality) {
+                showError('nationality', 'Please select your nationality');
+                isValid = false;
+            } else {
+                clearError('nationality');
+                formData.nationality = nationality;
+            }
+
+            stageValidation[1] = isValid;
+            return isValid;
+        }
+
+        /**
+         * Validate Stage 2: Contact Information
+         */
+        function validateStage2() {
+            let isValid = true;
+
+            // Email
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
+                showError('email', 'Email address is required');
+                isValid = false;
+            } else if (!emailRegex.test(email)) {
+                showError('email', 'Please enter a valid email address');
+                isValid = false;
+            } else {
+                clearError('email');
+                formData.email = email;
+            }
+
+            // Phone
+            const phone = document.getElementById('phone').value.trim();
+            const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}$/;
+            if (!phone) {
+                showError('phone', 'Phone number is required');
+                isValid = false;
+            } else if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+                showError('phone', 'Please enter a valid phone number');
+                isValid = false;
+            } else {
+                clearError('phone');
+                formData.phone = phone;
+            }
+
+            // Address
+            const address = document.getElementById('address').value.trim();
+            if (!address || address.length < 5) {
+                showError('address', 'Please enter a valid street address');
+                isValid = false;
+            } else {
+                clearError('address');
+                formData.address = address;
+            }
+
+            // City
+            const city = document.getElementById('city').value.trim();
+            if (!city || city.length < 2) {
+                showError('city', 'Please enter a valid city name');
+                isValid = false;
+            } else {
+                clearError('city');
+                formData.city = city;
+            }
+
+            // ZIP Code
+            const zipCode = document.getElementById('zipCode').value.trim();
+            if (!zipCode || zipCode.length < 3) {
+                showError('zipCode', 'Please enter a valid ZIP/postal code');
+                isValid = false;
+            } else {
+                clearError('zipCode');
+                formData.zipCode = zipCode;
+            }
+
+            stageValidation[2] = isValid;
+            return isValid;
+        }
+
+        /**
+         * Validate Stage 3: Account Setup
+         */
+        function validateStage3() {
+            let isValid = true;
+
+            // Username
+            const username = document.getElementById('username').value.trim();
+            const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+            if (!username) {
+                showError('username', 'Username is required');
+                isValid = false;
+            } else if (!usernameRegex.test(username)) {
+                showError('username', 'Username must be 3-20 characters (letters, numbers, underscores)');
+                isValid = false;
+            } else {
+                clearError('username');
+                formData.username = username;
+            }
+
+            // Password
+            const password = document.getElementById('password').value;
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+            if (!password) {
+                showError('password', 'Password is required');
+                isValid = false;
+            } else if (!passwordRegex.test(password)) {
+                showError('password', 'Password must have 8+ chars with uppercase, lowercase, number, and special character');
+                isValid = false;
+            } else {
+                clearError('password');
+                formData.password = password;
+            }
+
+            // Confirm Password
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (!confirmPassword) {
+                showError('confirmPassword', 'Please confirm your password');
+                isValid = false;
+            } else if (confirmPassword !== password) {
+                showError('confirmPassword', 'Passwords do not match');
+                isValid = false;
+            } else {
+                clearError('confirmPassword');
+                formData.confirmPassword = confirmPassword;
+            }
+
+            // Security Question
+            const securityQuestion = document.getElementById('securityQuestion').value;
+            if (!securityQuestion) {
+                showError('securityQuestion', 'Please select a security question');
+                isValid = false;
+            } else {
+                clearError('securityQuestion');
+                formData.securityQuestion = securityQuestion;
+            }
+
+            // Security Answer
+            const securityAnswer = document.getElementById('securityAnswer').value.trim();
+            if (!securityAnswer || securityAnswer.length < 2) {
+                showError('securityAnswer', 'Please provide an answer (at least 2 characters)');
+                isValid = false;
+            } else {
+                clearError('securityAnswer');
+                formData.securityAnswer = securityAnswer;
+            }
+
+            stageValidation[3] = isValid;
+            return isValid;
+        }
+
+        /**
+         * Validate Stage 4: Terms Agreement
+         */
+        function validateStage4() {
+            let isValid = true;
+
+            const termsAgree = document.getElementById('termsAgree').checked;
+            if (!termsAgree) {
+                showError('termsAgree', 'You must agree to the Terms of Service');
+                isValid = false;
+            } else {
+                clearError('termsAgree');
+                formData.termsAgree = termsAgree;
+            }
+
+            stageValidation[4] = isValid;
+            return isValid;
+        }
+
+        /**
+         * Validate current stage
+         */
+        function validateCurrentStage() {
+            switch (currentStage) {
+                case 1: return validateStage1();
+                case 2: return validateStage2();
+                case 3: return validateStage3();
+                case 4: return validateStage4();
+                default: return false;
+            }
+        }
+
+        // ============== ERROR HANDLING ==============
+
+        /**
+         * Show error message for a field
+         */
+        function showError(fieldId, message) {
+            const input = document.getElementById(fieldId);
+            const errorEl = document.getElementById(fieldId + 'Error');
+            
+            if (input) {
+                input.classList.remove('valid');
+                input.classList.add('invalid');
+            }
+            
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.classList.add('show');
+            }
+        }
+
+        /**
+         * Clear error message for a field
+         */
+        function clearError(fieldId) {
+            const input = document.getElementById(fieldId);
+            const errorEl = document.getElementById(fieldId + 'Error');
+            
+            if (input) {
+                input.classList.remove('invalid');
+                input.classList.add('valid');
+            }
+            
+            if (errorEl) {
+                errorEl.textContent = '';
+                errorEl.classList.remove('show');
+            }
+        }
+
+        // ============== NAVIGATION FUNCTIONS ==============
+
+        /**
+         * Go to next stage
+         */
+        function nextStage() {
+            if (!validateCurrentStage()) {
+                return;
+            }
+
+            if (currentStage < totalStages) {
+                currentStage++;
+                updateStageDisplay();
+                
+                // Update summary if going to stage 4
+                if (currentStage === 4) {
+                    updateSummary();
+                }
+            }
+        }
+
+        /**
+         * Go to previous stage
+         */
+        function previousStage() {
+            if (currentStage > 1) {
+                currentStage--;
+                updateStageDisplay();
+            }
+        }
+
+        /**
+         * Go to specific stage (used by Edit buttons)
+         */
+        function goToStage(stage) {
+            if (stage >= 1 && stage <= totalStages) {
+                currentStage = stage;
+                updateStageDisplay();
+            }
+        }
+
+        /**
+         * Update stage display
+         */
+        function updateStageDisplay() {
+            // Hide all stages
+            document.querySelectorAll('.form-stage').forEach(stage => {
+                stage.classList.remove('active');
+            });
+
+            // Show current stage
+            document.getElementById('stage' + currentStage).classList.add('active');
+
+            // Update step indicators
+            for (let i = 1; i <= totalStages; i++) {
+                const stepEl = document.getElementById('step' + i);
+                const labelEl = document.querySelectorAll('.step-label')[i - 1];
+                
+                stepEl.classList.remove('active', 'completed');
+                labelEl.classList.remove('active', 'completed');
+                
+                if (i < currentStage) {
+                    stepEl.classList.add('completed');
+                    labelEl.classList.add('completed');
+                } else if (i === currentStage) {
+                    stepEl.classList.add('active');
+                    labelEl.classList.add('active');
+                }
+            }
+
+            // Update progress bar
+            const progress = ((currentStage - 1) / (totalStages - 1)) * 100;
+            progressFill.style.width = progress + '%';
+            progressText.textContent = `Stage ${currentStage} of ${totalStages} - ${stageTitles[currentStage]}`;
+
+            // Update navigation buttons
+            prevBtn.classList.toggle('btn-hidden', currentStage === 1);
+            
+            if (currentStage === totalStages) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        /**
+         * Update summary section with form data
+         */
+        function updateSummary() {
+            // Personal Info
+            document.getElementById('summaryName').textContent = 
+                `${formData.firstName} ${formData.lastName}`;
+            document.getElementById('summaryDob').textContent = 
+                formatDate(formData.dob);
+            document.getElementById('summaryGender').textContent = 
+                capitalizeFirst(formData.gender);
+            document.getElementById('summaryNationality').textContent = 
+                getNationalityName(formData.nationality);
+
+            // Contact Info
+            document.getElementById('summaryEmail').textContent = formData.email;
+            document.getElementById('summaryPhone').textContent = formData.phone;
+            document.getElementById('summaryAddress').textContent = 
+                `${formData.address}, ${formData.city} ${formData.zipCode}`;
+
+            // Account Info
+            document.getElementById('summaryUsername').textContent = formData.username;
+            document.getElementById('summarySecurityQuestion').textContent = 
+                getSecurityQuestionText(formData.securityQuestion);
+        }
+
+        // ============== UTILITY FUNCTIONS ==============
+
+        /**
+         * Format date for display
+         */
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
+        /**
+         * Capitalize first letter
+         */
+        function capitalizeFirst(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        /**
+         * Get nationality display name
+         */
+        function getNationalityName(code) {
+            const nationalities = {
+                'us': 'United States',
+                'uk': 'United Kingdom',
+                'ca': 'Canada',
+                'au': 'Australia',
+                'de': 'Germany',
+                'fr': 'France',
+                'in': 'India',
+                'jp': 'Japan',
+                'other': 'Other'
+            };
+            return nationalities[code] || code;
+        }
+
+        /**
+         * Get security question text
+         */
+        function getSecurityQuestionText(code) {
+            const questions = {
+                'pet': 'What was the name of your first pet?',
+                'school': 'What was the name of your elementary school?',
+                'city': 'In what city were you born?',
+                'food': 'What is your favorite food?'
+            };
+            return questions[code] || code;
+        }
+
+        /**
+         * Restart the form
+         */
+        function restartForm() {
+            // Reset form data
+            formData = {
+                firstName: '', lastName: '', dob: '', gender: '', nationality: '',
+                email: '', phone: '', address: '', city: '', zipCode: '',
+                username: '', password: '', confirmPassword: '', 
+                securityQuestion: '', securityAnswer: '', termsAgree: false
+            };
+
+            // Reset stage validation
+            stageValidation = { 1: false, 2: false, 3: false, 4: false };
+
+            // Reset form inputs
+            form.reset();
+
+            // Clear all validation states
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.classList.remove('valid', 'invalid');
+            });
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.classList.remove('show');
+            });
+
+            // Reset to stage 1
+            currentStage = 1;
+            updateStageDisplay();
+
+            // Hide success, show form
+            successContainer.classList.remove('show');
+            form.style.display = 'block';
+            document.querySelector('.nav-buttons').style.display = 'flex';
+        }
+
+        // ============== FORM SUBMISSION ==============
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Validate final stage
+            if (!validateStage4()) {
+                return;
+            }
+
+            // Verify all stages are valid
+            if (!stageValidation[1] || !stageValidation[2] || !stageValidation[3]) {
+                alert('Please complete all previous stages before submitting.');
+                return;
+            }
+
+            // Log form data (in real app, this would be sent to server)
+            console.log('Form Submitted Successfully!');
+            console.log('Form Data:', formData);
+
+            // Show success message
+            form.style.display = 'none';
+            document.querySelector('.nav-buttons').style.display = 'none';
+            successContainer.classList.add('show');
+
+            // Update progress to 100%
+            progressFill.style.width = '100%';
+            progressText.textContent = 'Registration Complete!';
+            
+            // Mark all steps as completed
+            for (let i = 1; i <= totalStages; i++) {
+                document.getElementById('step' + i).classList.add('completed');
+                document.querySelectorAll('.step-label')[i - 1].classList.add('completed');
+            }
+        });
+
+        // ============== REAL-TIME VALIDATION ==============
+
+        // Add blur event listeners for real-time validation feedback
+        document.querySelectorAll('#stage1 input, #stage1 select').forEach(input => {
+            input.addEventListener('blur', () => {
+                if (input.value) validateStage1();
+            });
+        });
+
+        document.querySelectorAll('#stage2 input').forEach(input => {
+            input.addEventListener('blur', () => {
+                if (input.value) validateStage2();
+            });
+        });
+
+        document.querySelectorAll('#stage3 input, #stage3 select').forEach(input => {
+            input.addEventListener('blur', () => {
+                if (input.value) validateStage3();
+            });
+        });
+
+        // Initialize display
+        updateStageDisplay();
+    </script>
+</body>
+</html>

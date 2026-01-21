@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Registration System with Dynamic Validation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Validation states */
+        input.valid,
+        select.valid {
+            border-color: #27ae60;
+            background-color: #f0fdf4;
+        }
+
+        input.invalid,
+        select.invalid {
+            border-color: #e74c3c;
+            background-color: #fff5f5;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-icon {
+            color: #27ae60;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .success-icon.show {
+            display: block;
+        }
+
+        .password-strength {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .password-strength.show {
+            display: block;
+        }
+
+        .strength-weak {
+            background-color: #ffebee;
+            color: #e74c3c;
+        }
+
+        .strength-medium {
+            background-color: #fff3e0;
+            color: #f39c12;
+        }
+
+        .strength-strong {
+            background-color: #f0fdf4;
+            color: #27ae60;
+        }
+
+        .hidden-field {
+            display: none;
+        }
+
+        .hidden-field.show {
+            display: block;
+        }
+
+        .validation-requirements {
+            background-color: #f5f5f5;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 8px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .validation-requirements.show {
+            display: block;
+        }
+
+        .requirement {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .requirement.met {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .requirement::before {
+            content: '✗ ';
+            color: #e74c3c;
+            margin-right: 5px;
+        }
+
+        .requirement.met::before {
+            content: '✓ ';
+            color: #27ae60;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .success-message {
+            background-color: #f0fdf4;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+            border: 1px solid #27ae60;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .role-specific-info {
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #1565c0;
+            display: none;
+            border-left: 4px solid #1565c0;
+        }
+
+        .role-specific-info.show {
+            display: block;
+        }
+
+        .field-label-required::after {
+            content: ' *';
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registration System</h1>
+        <p class="subtitle">Adaptive Validation Based on Your Role</p>
+
+        <div class="success-message" id="successMessage">
+            ✓ Registration successful! Welcome to our platform.
+        </div>
+
+        <form id="registrationForm" novalidate>
+            <!-- Name Field -->
+            <div class="form-group">
+                <label for="name" class="field-label-required">Full Name</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    placeholder="Enter your full name"
+                    required
+                >
+                <div class="error-message" id="nameError"></div>
+                <div class="success-icon" id="nameSuccess">✓ Valid name</div>
+            </div>
+
+            <!-- Email Field -->
+            <div class="form-group">
+                <label for="email" class="field-label-required">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    placeholder="Enter your email"
+                    required
+                >
+                <div class="error-message" id="emailError"></div>
+                <div class="success-icon" id="emailSuccess">✓ Valid email</div>
+                <div class="role-specific-info" id="emailInfo"></div>
+            </div>
+
+            <!-- Role Selection -->
+            <div class="form-group">
+                <label for="role" class="field-label-required">Select Your Role</label>
+                <select id="role" name="role" required>
+                    <option value="">-- Choose a role --</option>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <div class="error-message" id="roleError"></div>
+            </div>
+
+            <!-- Age Field -->
+            <div class="form-group">
+                <label for="age" class="field-label-required">Age</label>
+                <input 
+                    type="number" 
+                    id="age" 
+                    name="age" 
+                    placeholder="Enter your age"
+                    min="13"
+                    max="120"
+                    required
+                >
+                <div class="error-message" id="ageError"></div>
+                <div class="success-icon" id="ageSuccess">✓ Valid age</div>
+            </div>
+
+            <!-- Skills Field (Hidden initially) -->
+            <div class="form-group hidden-field" id="skillsGroup">
+                <label for="skills" class="field-label-required">Skills</label>
+                <textarea 
+                    id="skills" 
+                    name="skills" 
+                    placeholder="List your skills (comma-separated)"
+                    rows="3"
+                ></textarea>
+                <div class="error-message" id="skillsError"></div>
+                <div class="success-icon" id="skillsSuccess">✓ Valid skills</div>
+            </div>
+
+            <!-- Teaching Experience (Teachers only) -->
+            <div class="form-group hidden-field" id="experienceGroup">
+                <label for="experience" class="field-label-required">Years of Teaching Experience</label>
+                <input 
+                    type="number" 
+                    id="experience" 
+                    name="experience" 
+                    placeholder="Enter years of experience"
+                    min="0"
+                    max="60"
+                >
+                <div class="error-message" id="experienceError"></div>
+                <div class="success-icon" id="experienceSuccess">✓ Valid experience</div>
+            </div>
+
+        1
+            <div class="form-group hidden-field" id="securityGroup">
+                <label for="security" class="field-label-required">Security Clearance Level</label>
+                <select id="security" name="security">
+                    <option value="">-- Select level --</option>
+                    <option value="basic">Basic</option>
+                    <option value="standard">Standard</option>
+                    <option value="high">High</option>
+                </select>
+                <div class="error-message" id="securityError"></div>
+                <div class="success-icon" id="securitySuccess">✓ Valid level</div>
+            </div>
+
+        
+            <div class="form-group">
+                <label for="password" class="field-label-required">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Create a strong password"
+                    required
+                >
+                <div class="error-message" id="passwordError"></div>
+                <div class="password-strength" id="passwordStrength"></div>
+                <div class="validation-requirements" id="passwordRequirements">
+                    <div class="requirement" id="req1">At least 8 characters</div>
+                    <div class="requirement" id="req2">At least one uppercase letter</div>
+                    <div class="requirement" id="req3">At least one lowercase letter</div>
+                    <div class="requirement" id="req4">At least one number</div>
+                    <div class="requirement" id="req5">At least one special character</div>
+                </div>
+            </div>
+
+            
+            <div class="form-group">
+                <label for="confirmPassword" class="field-label-required">Confirm Password</label>
+                <input 
+                    type="password" 
+                    id="confirmPassword" 
+                    name="confirmPassword" 
+                    placeholder="Re-enter your password"
+                    required
+                >
+                <div class="error-message" id="confirmPasswordError"></div>
+                <div class="success-icon" id="confirmPasswordSuccess">✓ Passwords match</div>
+            </div>
+
+            
+            <button type="submit" id="submitBtn" disabled>Create Account</button>
+        </form>
+    </div>
+
+    <script>
+
+        const validationRules = {
+            student: {
+                passwordMinLength: 8,
+                passwordRequirements: ['uppercase', 'lowercase', 'number'],
+                allowedEmailDomains: ['@student.com', '@edu.com', '@university.com', '@school.com'],
+                requireSkills: true,
+                minAge: 13,
+                maxAge: 30
+            },
+            teacher: {
+                passwordMinLength: 10,
+                passwordRequirements: ['uppercase', 'lowercase', 'number', 'special'],
+                allowedEmailDomains: ['@teacher.com', '@edu.com', '@university.com', '@school.com'],
+                requireSkills: true,
+                minAge: 21,
+                maxAge: 75,
+                requireExperience: true
+            },
+            admin: {
+                passwordMinLength: 12,
+                passwordRequirements: ['uppercase', 'lowercase', 'number', 'special'],
+                allowedEmailDomains: ['@admin.com', '@company.com'],
+                minAge: 25,
+                maxAge: 75,
+                requireSecurity: true
+            }
+        };
+
+        
+        const form = document.getElementById('registrationForm');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const ageInput = document.getElementById('age');
+        const roleSelect = document.getElementById('role');
+        const skillsInput = document.getElementById('skills');
+        const experienceInput = document.getElementById('experience');
+        const securitySelect = document.getElementById('security');
+        const submitBtn = document.getElementById('submitBtn');
+        const successMessage = document.getElementById('successMessage');
+
+        
+        function validateName(name) {
+            if (!name || name.trim().length < 2) {
+                return { valid: false, message: 'Name must be at least 2 characters long' };
+            }
+            if (!/^[a-zA-Z\s]+$/.test(name)) {
+                return { valid: false, message: 'Name should only contain letters and spaces' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        /**
+         * Validate email based on role and domain
+         */
+        function validateEmail(email, role) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!email) {
+                return { valid: false, message: 'Email is required' };
+            }
+
+            if (!emailRegex.test(email)) {
+                return { valid: false, message: 'Invalid email format' };
+            }
+
+            if (role) {
+                const rules = validationRules[role];
+                if (rules && rules.allowedEmailDomains) {
+                    const hasValidDomain = rules.allowedEmailDomains.some(domain => 
+                        email.toLowerCase().endsWith(domain)
+                    );
+                    if (!hasValidDomain) {
+                        return { 
+                            valid: false, 
+                            message: `For ${role}s, email must end with: ${rules.allowedEmailDomains.join(', ')}` 
+                        };
+                    }
+                }
+            }
+
+            return { valid: true, message: 'Email is valid' };
+        }
+
+        /**
+         * Check password strength
+         */
+        function checkPasswordStrength(password) {
+            const strength = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password),
+                special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+            };
+
+            const metRequirements = Object.values(strength).filter(v => v).length;
+            
+            let strengthLevel = 'weak';
+            if (metRequirements >= 4) strengthLevel = 'strong';
+            else if (metRequirements >= 3) strengthLevel = 'medium';
+
+            return { strength, strengthLevel, metRequirements };
+        }
+
+        /**
+         * Validate password based on role
+         */
+        function validatePassword(password, role) {
+            if (!password) {
+                return { valid: false, message: 'Password is required' };
+            }
+
+            const rules = role ? validationRules[role] : validationRules.student;
+            const { strength, strengthLevel, metRequirements } = checkPasswordStrength(password);
+
+            if (password.length < rules.passwordMinLength) {
+                return { 
+                    valid: false, 
+                    message: `Password must be at least ${rules.passwordMinLength} characters for ${role || 'default'}s` 
+                };
+            }
+
+            // Check required strength components
+            const required = rules.passwordRequirements;
+            const requirementMap = {
+                'uppercase': strength.uppercase,
+                'lowercase': strength.lowercase,
+                'number': strength.number,
+                'special': strength.special
+            };
+
+            const allMet = required.every(req => requirementMap[req]);
+            if (!allMet) {
+                return { valid: false, message: 'Password does not meet complexity requirements' };
+            }
+
+            return { valid: true, message: `Password strength: ${strengthLevel}`, strengthLevel };
+        }
+
+        /**
+         * Validate confirm password
+         */
+        function validateConfirmPassword(password, confirmPassword) {
+            if (!confirmPassword) {
+                return { valid: false, message: 'Please confirm your password' };
+            }
+            if (password !== confirmPassword) {
+                return { valid: false, message: 'Passwords do not match' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        /**
+         * Validate age based on role
+         */
+        function validateAge(age, role) {
+            age = parseInt(age);
+            
+            if (!age || age < 13 || age > 120) {
+                return { valid: false, message: 'Age must be between 13 and 120' };
+            }
+
+            if (role) {
+                const rules = validationRules[role];
+                if (age < rules.minAge || age > rules.maxAge) {
+                    return { 
+                        valid: false, 
+                        message: `For ${role}s, age must be between ${rules.minAge} and ${rules.maxAge}` 
+                    };
+                }
+            }
+
+            return { valid: true, message: '' };
+        }
+
+        /**
+         * Validate skills
+         */
+        function validateSkills(skills) {
+            if (!skills || skills.trim().length === 0) {
+                return { valid: false, message: 'Please list at least one skill' };
+            }
+            const skillList = skills.split(',').map(s => s.trim());
+            if (skillList.length === 0) {
+                return { valid: false, message: 'Please list at least one skill' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        /**
+         * Validate teaching experience
+         */
+        function validateExperience(experience) {
+            const exp = parseInt(experience);
+            if (isNaN(exp) || exp < 0 || exp > 60) {
+                return { valid: false, message: 'Years of experience must be between 0 and 60' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        /**
+         * Validate security clearance
+         */
+        function validateSecurity(security) {
+            if (!security) {
+                return { valid: false, message: 'Please select a security clearance level' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        // ============== DOM MANIPULATION FUNCTIONS ==============
+
+        /**
+         * Show/hide form fields based on selected role
+         */
+        function updateFormFields(role) {
+            const skillsGroup = document.getElementById('skillsGroup');
+            const experienceGroup = document.getElementById('experienceGroup');
+            const securityGroup = document.getElementById('securityGroup');
+            const emailInfo = document.getElementById('emailInfo');
+
+            // Hide all role-specific fields
+            skillsGroup.classList.remove('show');
+            experienceGroup.classList.remove('show');
+            securityGroup.classList.remove('show');
+
+            // Show/require fields based on role
+            if (role === 'student' || role === 'teacher') {
+                skillsGroup.classList.add('show');
+                skillsInput.required = true;
+            } else {
+                skillsInput.required = false;
+            }
+
+            if (role === 'teacher') {
+                experienceGroup.classList.add('show');
+                experienceInput.required = true;
+            } else {
+                experienceInput.required = false;
+            }
+
+            if (role === 'admin') {
+                securityGroup.classList.add('show');
+                securitySelect.required = true;
+            } else {
+                securitySelect.required = false;
+            }
+
+            // Update email info
+            if (role) {
+                const rules = validationRules[role];
+                emailInfo.textContent = `Valid email domains for ${role}s: ${rules.allowedEmailDomains.join(', ')}`;
+                emailInfo.classList.add('show');
+            } else {
+                emailInfo.classList.remove('show');
+            }
+        }
+
+        /**
+         * Display validation message
+         */
+        function displayValidation(elementId, errorId, successId, isValid, message = '') {
+            const element = document.getElementById(elementId);
+            const errorEl = document.getElementById(errorId);
+            const successEl = document.getElementById(successId);
+
+            if (isValid) {
+                element.classList.remove('invalid');
+                element.classList.add('valid');
+                errorEl.classList.remove('show');
+                if (successEl) {
+                    successEl.classList.add('show');
+                }
+            } else {
+                element.classList.remove('valid');
+                element.classList.add('invalid');
+                if (errorEl) {
+                    errorEl.textContent = message;
+                    errorEl.classList.add('show');
+                }
+                if (successEl) {
+                    successEl.classList.remove('show');
+                }
+            }
+        }
+
+        /**
+         * Update password requirements display
+         */
+        function updatePasswordRequirements(password, role) {
+            const requirementsDiv = document.getElementById('passwordRequirements');
+            const strengthDiv = document.getElementById('passwordStrength');
+
+            if (!password) {
+                requirementsDiv.classList.remove('show');
+                strengthDiv.classList.remove('show');
+                return;
+            }
+
+            const rules = role ? validationRules[role] : validationRules.student;
+            const { strength, strengthLevel } = checkPasswordStrength(password);
+
+            requirementsDiv.classList.add('show');
+            strengthDiv.classList.add('show');
+
+            // Update requirement indicators
+            const requirementMap = {
+                'uppercase': { id: 'req2', name: 'uppercase' },
+                'lowercase': { id: 'req3', name: 'lowercase' },
+                'number': { id: 'req4', name: 'number' },
+                'special': { id: 'req5', name: 'special' }
+            };
+
+            // Check length requirement
+            const lengthReq = document.getElementById('req1');
+            if (password.length >= rules.passwordMinLength) {
+                lengthReq.classList.add('met');
+            } else {
+                lengthReq.classList.remove('met');
+            }
+
+            // Check other requirements
+            rules.passwordRequirements.forEach(req => {
+                const reqData = requirementMap[req];
+                if (reqData) {
+                    const reqEl = document.getElementById(reqData.id);
+                    if (strength[reqData.name]) {
+                        reqEl.classList.add('met');
+                    } else {
+                        reqEl.classList.remove('met');
+                    }
+                }
+            });
+
+            // Update strength indicator
+            strengthDiv.textContent = `Password strength: ${strengthLevel.toUpperCase()}`;
+            strengthDiv.className = `password-strength show strength-${strengthLevel}`;
+        }
+
+        /**
+         * Check if form is completely valid
+         */
+        function isFormValid() {
+            const role = roleSelect.value;
+            if (!role) return false;
+
+            const fields = [
+                { input: nameInput, validator: validateName },
+                { input: emailInput, validator: (val) => validateEmail(val, role) },
+                { input: ageInput, validator: (val) => validateAge(val, role) },
+                { input: passwordInput, validator: (val) => validatePassword(val, role) },
+                { input: confirmPasswordInput, validator: (val) => validateConfirmPassword(passwordInput.value, val) }
+            ];
+
+            // Add role-specific fields
+            if (validationRules[role].requireSkills) {
+                fields.push({ input: skillsInput, validator: validateSkills });
+            }
+            if (validationRules[role].requireExperience) {
+                fields.push({ input: experienceInput, validator: validateExperience });
+            }
+            if (validationRules[role].requireSecurity) {
+                fields.push({ input: securitySelect, validator: validateSecurity });
+            }
+
+            return fields.every(field => {
+                const result = field.validator(field.input.value);
+                return result.valid;
+            });
+        }
+
+        // ============== EVENT LISTENERS ==============
+
+        // Role change event
+        roleSelect.addEventListener('change', (e) => {
+            updateFormFields(e.target.value);
+            validateForm();
+        });
+
+        // Name validation
+        nameInput.addEventListener('blur', () => {
+            const result = validateName(nameInput.value);
+            displayValidation('name', 'nameError', 'nameSuccess', result.valid, result.message);
+            updateSubmitButton();
+        });
+
+        nameInput.addEventListener('input', () => {
+            if (nameInput.classList.contains('valid')) {
+                const result = validateName(nameInput.value);
+                displayValidation('name', 'nameError', 'nameSuccess', result.valid, result.message);
+                updateSubmitButton();
+            }
+        });
+
+        // Email validation
+        emailInput.addEventListener('blur', () => {
+            const result = validateEmail(emailInput.value, roleSelect.value);
+            displayValidation('email', 'emailError', 'emailSuccess', result.valid, result.message);
+            updateSubmitButton();
+        });
+
+        emailInput.addEventListener('input', () => {
+            if (emailInput.classList.contains('valid')) {
+                const result = validateEmail(emailInput.value, roleSelect.value);
+                displayValidation('email', 'emailError', 'emailSuccess', result.valid, result.message);
+                updateSubmitButton();
+            }
+        });
+
+        // Age validation
+        ageInput.addEventListener('blur', () => {
+            const result = validateAge(ageInput.value, roleSelect.value);
+            displayValidation('age', 'ageError', 'ageSuccess', result.valid, result.message);
+            updateSubmitButton();
+        });
+
+        ageInput.addEventListener('input', () => {
+            if (ageInput.classList.contains('valid')) {
+                const result = validateAge(ageInput.value, roleSelect.value);
+                displayValidation('age', 'ageError', 'ageSuccess', result.valid, result.message);
+                updateSubmitButton();
+            }
+        });
+
+        // Skills validation
+        skillsInput.addEventListener('blur', () => {
+            if (validationRules[roleSelect.value].requireSkills) {
+                const result = validateSkills(skillsInput.value);
+                displayValidation('skills', 'skillsError', 'skillsSuccess', result.valid, result.message);
+                updateSubmitButton();
+            }
+        });
+
+        skillsInput.addEventListener('input', () => {
+            if (skillsInput.classList.contains('valid')) {
+                const result = validateSkills(skillsInput.value);
+                displayValidation('skills', 'skillsError', 'skillsSuccess', result.valid, result.message);
+                updateSubmitButton();
+            }
+        });
+
+        // Experience validation
+        experienceInput.addEventListener('blur', () => {
+            if (validationRules[roleSelect.value].requireExperience) {
+                const result = validateExperience(experienceInput.value);
+                displayValidation('experience', 'experienceError', 'experienceSuccess', result.valid, result.message);
+                updateSubmitButton();
+            }
+        });
+
+        experienceInput.addEventListener('input', () => {
+            if (experienceInput.classList.contains('valid')) {
+                const result = validateExperience(experienceInput.value);
+                displayValidation('experience', 'experienceError', 'experienceSuccess', result.valid, result.message);
+                updateSubmitButton();
+            }
+        });
+
+        // Security validation
+        securitySelect.addEventListener('change', () => {
+            if (validationRules[roleSelect.value].requireSecurity) {
+                const result = validateSecurity(securitySelect.value);
+                displayValidation('security', 'securityError', 'securitySuccess', result.valid, result.message);
+                updateSubmitButton();
+            }
+        });
+
+        // Password validation
+        passwordInput.addEventListener('input', () => {
+            const role = roleSelect.value;
+            const result = validatePassword(passwordInput.value, role);
+            updatePasswordRequirements(passwordInput.value, role);
+            displayValidation('password', 'passwordError', null, result.valid, result.message);
+            
+            // Also revalidate confirm password if it has a value
+            if (confirmPasswordInput.value) {
+                const confirmResult = validateConfirmPassword(passwordInput.value, confirmPasswordInput.value);
+                displayValidation('confirmPassword', 'confirmPasswordError', 'confirmPasswordSuccess', 
+                    confirmResult.valid, confirmResult.message);
+            }
+            updateSubmitButton();
+        });
+
+        // Confirm password validation
+        confirmPasswordInput.addEventListener('blur', () => {
+            const result = validateConfirmPassword(passwordInput.value, confirmPasswordInput.value);
+            displayValidation('confirmPassword', 'confirmPasswordError', 'confirmPasswordSuccess', 
+                result.valid, result.message);
+            updateSubmitButton();
+        });
+
+        confirmPasswordInput.addEventListener('input', () => {
+            if (confirmPasswordInput.classList.contains('valid')) {
+                const result = validateConfirmPassword(passwordInput.value, confirmPasswordInput.value);
+                displayValidation('confirmPassword', 'confirmPasswordError', 'confirmPasswordSuccess', 
+                    result.valid, result.message);
+                updateSubmitButton();
+            }
+        });
+
+        /**
+         * Update submit button state
+         */
+        function updateSubmitButton() {
+            submitBtn.disabled = !isFormValid();
+        }
+
+        /**
+         * Validate entire form
+         */
+        function validateForm() {
+            const role = roleSelect.value;
+            if (!role) {
+                updateSubmitButton();
+                return;
+            }
+
+            // Validate name
+            const nameResult = validateName(nameInput.value);
+            displayValidation('name', 'nameError', 'nameSuccess', nameResult.valid, nameResult.message);
+
+            // Validate email
+            const emailResult = validateEmail(emailInput.value, role);
+            displayValidation('email', 'emailError', 'emailSuccess', emailResult.valid, emailResult.message);
+
+            // Validate age
+            const ageResult = validateAge(ageInput.value, role);
+            displayValidation('age', 'ageError', 'ageSuccess', ageResult.valid, ageResult.message);
+
+            // Validate password
+            const passwordResult = validatePassword(passwordInput.value, role);
+            displayValidation('password', 'passwordError', null, passwordResult.valid, passwordResult.message);
+
+            // Validate confirm password
+            const confirmResult = validateConfirmPassword(passwordInput.value, confirmPasswordInput.value);
+            displayValidation('confirmPassword', 'confirmPasswordError', 'confirmPasswordSuccess', 
+                confirmResult.valid, confirmResult.message);
+
+            // Validate role-specific fields
+            if (validationRules[role].requireSkills) {
+                const skillsResult = validateSkills(skillsInput.value);
+                displayValidation('skills', 'skillsError', 'skillsSuccess', skillsResult.valid, skillsResult.message);
+            }
+
+            if (validationRules[role].requireExperience) {
+                const expResult = validateExperience(experienceInput.value);
+                displayValidation('experience', 'experienceError', 'experienceSuccess', expResult.valid, expResult.message);
+            }
+
+            if (validationRules[role].requireSecurity) {
+                const secResult = validateSecurity(securitySelect.value);
+                displayValidation('security', 'securityError', 'securitySuccess', secResult.valid, secResult.message);
+            }
+
+            updateSubmitButton();
+        }
+
+        // Form submission
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            if (!isFormValid()) {
+                alert('Please fix all validation errors before submitting.');
+                return;
+            }
+
+            // Show success message
+            successMessage.classList.add('show');
+            
+            // Log form data
+            console.log('Registration Data:', {
+                name: nameInput.value,
+                email: emailInput.value,
+                role: roleSelect.value,
+                age: ageInput.value,
+                password: '***',
+                skills: skillsInput.value || 'N/A',
+                experience: experienceInput.value || 'N/A',
+                security: securitySelect.value || 'N/A'
+            });
+
+            // Reset form after 2 seconds
+            setTimeout(() => {
+                form.reset();
+                successMessage.classList.remove('show');
+                document.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.classList.remove('valid', 'invalid');
+                });
+                document.querySelectorAll('.error-message, .success-icon').forEach(el => {
+                    el.classList.remove('show');
+                });
+                updateFormFields('');
+                updateSubmitButton();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
