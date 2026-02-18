@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Product Search</title>
+
+<style>
+body {
+  font-family: Arial;
+  padding: 20px;
+  background: #f4f4f4;
+}
+
+input {
+  padding: 10px;
+  width: 300px;
+}
+
+.product {
+  background: white;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Live Product Search</h2>
+<input type="text" id="search" placeholder="Search products...">
+
+<div id="results"></div>
+
+<script>
+// Local JSON data
+const products = [
+  {name:"iPhone 15", price:80000, category:"Mobile"},
+  {name:"Samsung TV", price:55000, category:"Electronics"},
+  {name:"Nike Shoes", price:7000, category:"Footwear"},
+  {name:"HP Laptop", price:65000, category:"Computers"}
+];
+
+const searchInput = document.getElementById("search");
+const resultsDiv = document.getElementById("results");
+
+let debounceTimer;
+
+searchInput.addEventListener("input", () => {
+
+  clearTimeout(debounceTimer);
+
+  debounceTimer = setTimeout(() => {
+    const query = searchInput.value.toLowerCase();
+
+    resultsDiv.innerHTML = "Loading...";
+
+    setTimeout(() => {
+      const filtered = products.filter(p =>
+        p.name.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        resultsDiv.innerHTML = "No results found";
+        return;
+      }
+
+      resultsDiv.innerHTML = filtered.map(p => `
+        <div class="product">
+          <b>${p.name}</b><br>
+          Price: ₹${p.price}<br>
+          Category: ${p.category}
+        </div>
+      `).join("");
+
+    }, 500);
+
+  }, 400); // Debounce delay
+
+});
+</script>
+
+</body>
+</html>

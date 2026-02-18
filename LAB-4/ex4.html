@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Weather Dashboard</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #e3f2fd;
+  text-align: center;
+  padding: 40px;
+}
+
+input {
+  padding: 10px;
+  width: 200px;
+}
+
+.weatherBox {
+  margin-top: 20px;
+  background: white;
+  padding: 20px;
+  display: inline-block;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Weather Dashboard</h2>
+
+<input id="city" placeholder="Enter city">
+<button onclick="getWeather()">Search</button>
+
+<div id="weather"></div>
+
+<script>
+let lastCityCache = null;
+
+async function getWeather() {
+
+  const city = document.getElementById("city").value;
+  const weatherDiv = document.getElementById("weather");
+
+  if (!city) return;
+
+  weatherDiv.innerHTML = "Loading...";
+
+  try {
+
+    // Replace with your API key
+    const apiKey = "YOUR_API_KEY";
+
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
+    );
+
+    if (!res.ok) throw new Error("City not found");
+
+    const data = await res.json();
+
+    lastCityCache = data; // Cache result
+
+    weatherDiv.innerHTML = `
+      <div class="weatherBox">
+        <h3>${data.name}</h3>
+        Temperature: ${data.main.temp} °C <br>
+        Humidity: ${data.main.humidity}% <br>
+        Condition: ${data.weather[0].description}
+      </div>
+    `;
+
+  } catch (err) {
+    weatherDiv.innerHTML = "Error: " + err.message;
+  }
+}
+</script>
+
+</body>
+</html>

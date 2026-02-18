@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student CRUD</title>
+
+<style>
+body { font-family: Arial; padding: 20px; }
+
+input {
+  padding: 8px;
+  margin: 5px;
+}
+
+table {
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+td, th {
+  border: 1px solid black;
+  padding: 8px 12px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Student Management</h2>
+
+<input id="id" placeholder="ID">
+<input id="name" placeholder="Name">
+<input id="dept" placeholder="Department">
+<input id="marks" placeholder="Marks">
+
+<button onclick="addStudent()">Add</button>
+
+<table>
+<thead>
+<tr>
+<th>ID</th><th>Name</th><th>Dept</th><th>Marks</th><th>Action</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+<script>
+let students = [];
+
+function renderTable() {
+  const body = document.getElementById("tableBody");
+
+  body.innerHTML = students.map((s,i) => `
+    <tr>
+      <td>${s.id}</td>
+      <td>${s.name}</td>
+      <td>${s.dept}</td>
+      <td>${s.marks}</td>
+      <td>
+        <button onclick="deleteStudent(${i})">Delete</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function addStudent() {
+
+  const student = {
+    id: id.value,
+    name: name.value,
+    dept: dept.value,
+    marks: marks.value
+  };
+
+  // AJAX simulation
+  setTimeout(() => {
+    students.push(student);
+    renderTable();
+  }, 300);
+}
+
+function deleteStudent(index) {
+  setTimeout(() => {
+    students.splice(index,1);
+    renderTable();
+  }, 300);
+}
+</script>
+
+</body>
+</html>
