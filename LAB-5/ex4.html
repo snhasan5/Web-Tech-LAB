@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Inventory System</title>
+
+<style>
+body { font-family: Arial; padding:20px; }
+
+.low { background:red; color:white; }
+
+table,th,td{
+ border:1px solid black;
+ border-collapse:collapse;
+ padding:8px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Product Inventory</h2>
+
+<input id="pid" placeholder="Product ID">
+<input id="pname" placeholder="Name">
+<input id="cat" placeholder="Category">
+<input id="price" placeholder="Price">
+<input id="stock" placeholder="Stock">
+<button onclick="add()">Add</button>
+
+<br><br>
+Search Category:
+<input id="search" oninput="render()">
+
+<table>
+<thead>
+<tr>
+<th>ID</th><th>Name</th><th>Category</th>
+<th>Price</th><th>Stock</th><th>Action</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+
+<h3 id="total"></h3>
+
+<script>
+let products=[];
+
+function render(){
+ const q=search.value.toLowerCase();
+ table.innerHTML="";
+ let totalValue=0;
+
+ products
+ .filter(p=>p.cat.toLowerCase().includes(q))
+ .forEach((p,i)=>{
+
+  totalValue+=p.price*p.stock;
+
+  table.innerHTML+=`
+   <tr class="${p.stock<5?'low':''}">
+    <td>${p.pid}</td>
+    <td>${p.pname}</td>
+    <td>${p.cat}</td>
+    <td>${p.price}</td>
+    <td>${p.stock}</td>
+    <td><button onclick="del(${i})">Delete</button></td>
+   </tr>`;
+ });
+
+ total.innerText="Total Inventory Value: ₹"+totalValue;
+}
+
+function add(){
+ products.push({
+  pid:pid.value,
+  pname:pname.value,
+  cat:cat.value,
+  price:+price.value,
+  stock:+stock.value
+ });
+ render();
+}
+
+function del(i){
+ products.splice(i,1);
+ render();
+}
+</script>
+
+</body>
+</html>

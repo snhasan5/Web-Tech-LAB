@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Library XML</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Library Book Tracker</h2>
+
+<input id="bid" placeholder="Book ID">
+<input id="title" placeholder="Title">
+<input id="author" placeholder="Author">
+<input id="status" placeholder="Available/Issued">
+<button onclick="addBook()">Add Book</button>
+
+<table>
+<thead>
+<tr>
+<th>ID</th><th>Title</th><th>Author</th><th>Status</th><th>Action</th>
+</tr>
+</thead>
+<tbody id="books"></tbody>
+</table>
+
+<script>
+let xml = `
+<books>
+ <book>
+  <id>101</id>
+  <title>Java</title>
+  <author>James</author>
+  <status>Available</status>
+ </book>
+</books>`;
+
+let doc = new DOMParser().parseFromString(xml,"text/xml");
+
+function render() {
+  const list = doc.getElementsByTagName("book");
+  books.innerHTML="";
+
+  for (let b of list) {
+    books.innerHTML += `
+    <tr>
+      <td>${b.children[0].textContent}</td>
+      <td>${b.children[1].textContent}</td>
+      <td>${b.children[2].textContent}</td>
+      <td>${b.children[3].textContent}</td>
+      <td><button onclick="delBook(this)">Delete</button></td>
+    </tr>`;
+  }
+}
+
+function addBook() {
+  const book = doc.createElement("book");
+
+  ["bid","title","author","status"].forEach(id=>{
+    const tag = id==="bid"?"id":id;
+    const el = doc.createElement(tag);
+    el.textContent = document.getElementById(id).value;
+    book.appendChild(el);
+  });
+
+  doc.documentElement.appendChild(book);
+  render();
+}
+
+function delBook(btn){
+  const i = btn.parentNode.parentNode.rowIndex-1;
+  doc.documentElement.removeChild(
+    doc.getElementsByTagName("book")[i]
+  );
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>

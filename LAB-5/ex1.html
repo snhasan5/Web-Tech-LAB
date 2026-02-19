@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Employee Management XML</title>
+
+<style>
+body { font-family: Arial; padding: 20px; }
+input { margin: 5px; padding: 6px; }
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Employee Management (XML)</h2>
+
+<input id="id" placeholder="ID">
+<input id="name" placeholder="Name">
+<input id="dept" placeholder="Department">
+<input id="salary" placeholder="Salary">
+<button onclick="addEmployee()">Add</button>
+
+<table>
+<thead>
+<tr>
+<th>ID</th><th>Name</th><th>Dept</th><th>Salary</th><th>Action</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+<script>
+// Local XML string (mock employees.xml)
+let xmlString = `
+<employees>
+  <employee>
+    <id>1</id><name>John</name>
+    <department>IT</department><salary>50000</salary>
+  </employee>
+</employees>`;
+
+let parser = new DOMParser();
+let xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+function render() {
+  const employees = xmlDoc.getElementsByTagName("employee");
+  const body = document.getElementById("tableBody");
+
+  body.innerHTML = "";
+
+  for (let emp of employees) {
+    body.innerHTML += `
+      <tr>
+        <td>${emp.children[0].textContent}</td>
+        <td>${emp.children[1].textContent}</td>
+        <td>${emp.children[2].textContent}</td>
+        <td>${emp.children[3].textContent}</td>
+        <td><button onclick="deleteEmp(this)">Delete</button></td>
+      </tr>`;
+  }
+}
+
+function addEmployee() {
+  const emp = xmlDoc.createElement("employee");
+
+  ["id","name","dept","salary"].forEach(tag => {
+    const el = xmlDoc.createElement(
+      tag === "dept" ? "department" : tag
+    );
+    el.textContent = document.getElementById(tag).value;
+    emp.appendChild(el);
+  });
+
+  xmlDoc.documentElement.appendChild(emp);
+  render();
+}
+
+function deleteEmp(btn) {
+  const index = btn.parentNode.parentNode.rowIndex - 1;
+  xmlDoc.documentElement.removeChild(
+    xmlDoc.getElementsByTagName("employee")[index]
+  );
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>

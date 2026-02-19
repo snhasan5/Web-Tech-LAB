@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student JSON CRUD</title>
+<style>
+body { font-family: Arial; padding:20px; }
+table,th,td{
+  border:1px solid black;
+  border-collapse:collapse;
+  padding:8px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Student Record (JSON)</h2>
+
+<input id="id" placeholder="ID">
+<input id="name" placeholder="Name">
+<input id="course" placeholder="Course">
+<input id="marks" placeholder="Marks">
+<button onclick="addStudent()">Add</button>
+
+<table>
+<thead>
+<tr>
+<th>ID</th><th>Name</th><th>Course</th><th>Marks</th><th>Action</th>
+</tr>
+</thead>
+<tbody id="data"></tbody>
+</table>
+
+<script>
+let students = [
+ {id:1,name:"Ali",course:"CSE",marks:90}
+];
+
+function render(){
+ data.innerHTML="";
+ students.forEach((s,i)=>{
+  data.innerHTML+=`
+   <tr>
+    <td>${s.id}</td>
+    <td>${s.name}</td>
+    <td>${s.course}</td>
+    <td>${s.marks}</td>
+    <td><button onclick="del(${i})">Delete</button></td>
+   </tr>`;
+ });
+}
+
+function addStudent(){
+ const s={
+  id:id.value,
+  name:name.value,
+  course:course.value,
+  marks:marks.value
+ };
+ students.push(s);
+ render();
+}
+
+function del(i){
+ students.splice(i,1);
+ render();
+}
+
+render();
+</script>
+
+</body>
+</html>
