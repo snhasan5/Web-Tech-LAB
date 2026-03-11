@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Notes Manager</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <h1>Student Notes Manager</h1>
+
+  <!-- Add Note Form -->
+  <div class="note-form">
+    <h2>Add New Note</h2>
+    <form id="addNoteForm">
+      <label for="title">Title:</label>
+      <input type="text" id="title" name="title" required>
+      <label for="subject">Subject:</label>
+      <input type="text" id="subject" name="subject" required>
+      <label for="description">Description:</label>
+      <textarea id="description" name="description" rows="4" required></textarea>
+      <button type="submit">Add Note</button>
+    </form>
+  </div>
+
+  <hr>
+
+  <!-- View Notes List -->
+  <div class="note-list" id="notesList">
+    <!-- Notes will be populated via AJAX -->
+  </div>
+
+  <!-- Edit Note Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>Edit Note</h2>
+      <form id="editNoteForm">
+        <input type="hidden" id="editId">
+        <label for="editTitle">Title:</label>
+        <input type="text" id="editTitle" name="title" required>
+        <label for="editSubject">Subject:</label>
+        <input type="text" id="editSubject" name="subject" required>
+        <label for="editDescription">Description:</label>
+        <textarea id="editDescription" name="description" rows="4" required></textarea>
+        <button type="submit">Update Note</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
