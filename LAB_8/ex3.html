@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Enrollment System</title>
+</head>
+<body>
+    <script>
+        class Course {
+            constructor(courseName, instructor) {
+                this.courseName = courseName;
+                this.instructor = instructor;
+            }
+            displayCourse() {
+                console.log(`Course: ${this.courseName}, Instructor: ${this.instructor}`);
+            }
+        }
+        let course1 = new Course("Web Technologies", "Dr. Kumar");
+        course1.displayCourse();
+
+        let enrollCourse = new Promise((resolve, reject) => {
+            let seatsAvailable = true; // Simulating seat availability 
+            if(seatsAvailable){
+                resolve("Enrollment Successful");
+            } else {
+                reject("Course Full");
+            }
+        });
+
+        enrollCourse
+            .then(msg => console.log(msg))
+            .catch(err => console.log(err));
+    </script>
+</body>
+</html>
