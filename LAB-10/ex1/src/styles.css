@@ -1,0 +1,139 @@
+:root {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  color: #1b1e2a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(140deg, #f4f9ff 0%, #eef2ff 45%, #f6fff3 100%);
+}
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.form-card {
+  width: min(100%, 520px);
+  background: #ffffff;
+  border: 1px solid #e5e9ff;
+  border-radius: 18px;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(36, 66, 146, 0.12);
+}
+
+.heading {
+  margin-bottom: 1.5rem;
+}
+
+.tag {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3563e9;
+}
+
+.heading h1 {
+  margin: 0.45rem 0 0.5rem;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  margin: 0;
+  color: #5f6580;
+}
+
+form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field-group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+label {
+  font-weight: 600;
+  color: #222640;
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #cad3ff;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #3563e9;
+  box-shadow: 0 0 0 3px rgba(53, 99, 233, 0.18);
+}
+
+input[aria-invalid='true'] {
+  border-color: #de3f3f;
+}
+
+.error-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #d13c3c;
+}
+
+.submit-button {
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2452d4 0%, #4b73e5 100%);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.submit-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+}
+
+.feedback {
+  margin: 0.3rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.feedback--success {
+  color: #0f7a36;
+}
+
+.feedback--error {
+  color: #cc3f3f;
+}
+
+@media (max-width: 560px) {
+  .form-card {
+    padding: 1.3rem;
+  }
+
+  .heading h1 {
+    font-size: 1.45rem;
+  }
+}
