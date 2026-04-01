@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        #score{
+            background-color: rgb(236, 230, 150);
+        }
+        .table{
+            border: 1px solid black;
+            padding: 10px;
+
+        }
+        
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="score">
+
+    </div>
+    <script>
+    const calcAvg = (m1, m2, m3) => {
+        return (m1 + m2 + m3) / 3;
+    }
+
+    const n = Number(prompt("No of students"));
+    let myStudent = [];
+        let parentDiv  = document.getElementById('score');
+
+    for (let i = 0; i < n; i++) {
+        let c = 1;
+        myStudent[i] = {};
+
+        myStudent[i].name = prompt(`Enter the name of student ${i + 1}`);
+        myStudent[i].mark1 = Number(prompt(`Enter your marks in Mathmatics`));
+        myStudent[i].mark2 = Number(prompt(`Enter your marks in Physics`));
+        myStudent[i].mark3 = Number(prompt(`Enter your marks in Chemistry`));
+
+        myStudent[i].avg = calcAvg(
+            myStudent[i].mark1,
+            myStudent[i].mark2,
+            myStudent[i].mark3
+        );
+        let newDiv = document.createElement("div");
+        newDiv.innerHTML = `<h3>Student Name: ${myStudent[i].name} </h3>
+                            <p>Average Marks: ${myStudent[i].avg}</p> `               
+        console.log(`Student Name: ${myStudent[i].name}`);
+        console.log(`Average Marks: ${myStudent[i].avg}`);
+        parentDiv.appendChild(newDiv);
+              newDiv.className = 'table';
+
+    }
+</script>
+</body>
+</html>

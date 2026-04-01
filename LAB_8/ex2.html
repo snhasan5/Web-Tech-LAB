@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+        const getGrade = (m1)=>{
+            if(m1 > 100) console.error("Invalid");
+            if(m1 <=100 && m1>90) return 'S';
+            else if(m1 <=90 && m1>80) return 'A';
+            else if(m1 <=80 && m1>70) return 'B';
+            else if(m1 <=70 && m1>60) return 'C';
+            else return 'F';
+        }
+      const student = {
+        id: 101,
+        name: "hasan",
+        department: "CSE",
+        marks: 82,
+      };
+
+      const updatedStudent = {
+        ...student,
+        grade: getGrade(student.marks),
+      };
+      const {id, name, department, marks,grade} = updatedStudent;
+      console.log(id, name, department, marks, grade);
+      console.log(updatedStudent);
+      const parentDiv = document.querySelector('body');
+      let newDiv = document.createElement('div');
+       newDiv.innerHTML = `<p>Name : ${ name} </p>
+                            <p>id : ${  id} </p>
+                            <p>Grade : ${ grade} </p>
+       `
+      newDiv.className = 'table';
+      parentDiv.appendChild(newDiv);
+    </script>
+  </body>
+</html>
