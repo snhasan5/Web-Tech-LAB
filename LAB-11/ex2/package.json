@@ -1,0 +1,11 @@
+{
+  "name": "lab-11-ex2-file-operations",
+  "version": "1.0.0",
+  "description": "LAB-11 Exercise 2: Node.js file operations using fs module",
+  "main": "fileOperations.js",
+  "scripts": {
+    "start": "node fileOperations.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "lab-12-ex2-middleware-demo",
+  "version": "1.0.0",
+  "description": "LAB-12 Exercise 2: Express middleware demonstration",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "lab-11-ex3-events-demo",
+  "version": "1.0.0",
+  "description": "LAB-11 Exercise 3: Event-driven programming with EventEmitter",
+  "main": "eventDemo.js",
+  "scripts": {
+    "start": "node eventDemo.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

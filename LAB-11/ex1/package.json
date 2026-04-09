@@ -1,0 +1,11 @@
+{
+  "name": "lab-11-ex1-node-http-server",
+  "version": "1.0.0",
+  "description": "LAB-11 Exercise 1: Simple Node.js HTTP server without external frameworks",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

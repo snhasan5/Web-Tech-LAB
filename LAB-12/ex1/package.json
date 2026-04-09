@@ -1,0 +1,15 @@
+{
+  "name": "lab-12-ex1-rest-api",
+  "version": "1.0.0",
+  "description": "LAB-12 Exercise 1: Express RESTful API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

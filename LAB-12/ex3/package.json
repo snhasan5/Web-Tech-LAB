@@ -1,0 +1,15 @@
+{
+  "name": "lab-12-ex3-mongodb-crud",
+  "version": "1.0.0",
+  "description": "LAB-12 Exercise 3: Express + MongoDB CRUD with Mongoose",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongoose": "^8.13.2"
+  }
+}
